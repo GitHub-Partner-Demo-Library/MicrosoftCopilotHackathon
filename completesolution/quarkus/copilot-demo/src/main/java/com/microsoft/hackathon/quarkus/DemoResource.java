@@ -241,7 +241,11 @@ public class DemoResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response zipFolder(@QueryParam("path") String path) {
         Objects.requireNonNull(path, "path must not be null");
-        java.nio.file.Path folderPath = Paths.get(path);
+        java.nio.file.Path baseDir = Paths.get("/safe/base/directory").normalize().toAbsolutePath();
+        java.nio.file.Path folderPath = baseDir.resolve(path).normalize().toAbsolutePath();
+        if (!folderPath.startsWith(baseDir)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid path").build();
+        }
         File folder = folderPath.toFile();
         if (!folder.exists()) {
             return Response.status(Response.Status.NOT_FOUND).build();
